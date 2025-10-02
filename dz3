@@ -1,0 +1,153 @@
+#include <iostream>
+using namespace std;
+
+class Node {
+public:
+    int data;
+    Node* prev;
+    Node* next;
+
+    Node(int value) {
+        data = value;
+        prev = nullptr;
+        next = nullptr;
+    }
+};
+
+// Створення списку з клавіатури
+void createList(Node*& head, Node*& tail) {
+    head = nullptr;
+    tail = nullptr;
+    int value;
+
+    cout << "Введіть числа (0 - кінець): ";
+    cin >> value;
+    if (!value) return;   
+
+    head = new Node(value);
+    Node* cur = head;
+
+    cin >> value;
+    while (value) {
+        Node* temp = new Node(value);
+        temp->prev = cur;
+        cur->next = temp;
+        cur = cur->next;
+        cin >> value;
+    }
+    tail = cur;
+}
+
+// Друк від голови до хвоста
+void printFromHead(Node* head) {
+    Node* cur = head;
+    while (cur != nullptr) {
+        cout << cur->data << " ";
+        cur = cur->next;
+    }
+    cout << endl;
+}
+
+// Друк від хвоста до голови
+void printFromTail(Node* tail) {
+    Node* cur = tail;
+    while (cur != nullptr) {
+        cout << cur->data << " ";
+        cur = cur->prev;
+    }
+    cout << endl;
+}
+
+// Видалення заданого елемента 
+bool deleteElement(Node*& head, Node*& tail, int value) {
+    Node* cur = head;
+    while (cur != nullptr) {
+        if (cur->data == value) {
+            if (cur->prev) cur->prev->next = cur->next;
+            else head = cur->next; 
+
+            if (cur->next) cur->next->prev = cur->prev;
+            else tail = cur->prev; 
+
+            delete cur;
+            return true;
+        }
+        cur = cur->next;
+    }
+    return false;
+}
+
+// Вставка після заданого елемента
+void insertAfter(Node*& head, Node*& tail, int afterValue, int newValue) {
+    Node* cur = head;
+    while (cur != nullptr) {
+        if (cur->data == afterValue) {
+            Node* newNode = new Node(newValue);
+            newNode->prev = cur;
+            newNode->next = cur->next;
+            if (cur->next) cur->next->prev = newNode;
+            else tail = newNode; 
+            cur->next = newNode;
+            return;
+        }
+        cur = cur->next;
+    }
+    cout << "Елемент " << afterValue << " не знайдено!\n";
+}
+
+// Вставка перед заданим елементом
+void insertBefore(Node*& head, Node*& tail, int beforeValue, int newValue) {
+    Node* cur = head;
+    while (cur != nullptr) {
+        if (cur->data == beforeValue) {
+            Node* newNode = new Node(newValue);
+            newNode->next = cur;
+            newNode->prev = cur->prev;
+            if (cur->prev) cur->prev->next = newNode;
+            else head = newNode; 
+            cur->prev = newNode;
+            return;
+        }
+        cur = cur->next;
+    }
+    cout << "Елемент " << beforeValue << " не знайдено!\n";
+}
+
+// Перевірка на симетричність
+bool isSymmetric(Node* head, Node* tail) {
+    while (head && tail && head != tail && head->prev != tail) {
+        if (head->data != tail->data) return false;
+        head = head->next;
+        tail = tail->prev;
+    }
+    return true;
+}
+
+int main() {
+    Node* head;
+    Node* tail;
+
+    createList(head, tail);
+
+    cout << "Список з голови: ";
+    printFromHead(head);
+
+    cout << "Список з хвоста: ";
+    printFromTail(tail);
+
+    insertAfter(head, tail, 2, 22);
+    cout << "Після вставки після 2: ";
+    printFromHead(head);
+
+    insertBefore(head, tail, 2, 222);
+    cout << "Після вставки перед 2: ";
+    printFromHead(head);
+
+    deleteElement(head, tail, 3);
+    cout << "Після видалення 3: ";
+    printFromHead(head);
+
+    cout << "Чи симетричний список? " << (isSymmetric(head, tail) ? "Так" : "Ні") << endl;
+
+    return 0;
+}
