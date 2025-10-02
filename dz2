@@ -1,0 +1,76 @@
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* next;
+};
+
+// Рекурсивне створення списку з клавіатури
+Node* createListRec() {
+    int x;
+    cout << "Введіть число (0 - кінець): ";
+    cin >> x;
+
+    if (x == 0) return nullptr; 
+
+    Node* newNode = new Node();
+    newNode->value = x;
+    newNode->next = createListRec(); 
+    return newNode;
+}
+
+// Рекурсивна вставка після заданого елемента
+void insertAfterRec(Node* head, int afterValue, int newValue) {
+    if (head == nullptr) return; 
+
+    if (head->value == afterValue) {
+        Node* newNode = new Node();
+        newNode->value = newValue;
+        newNode->next = head->next;
+        head->next = newNode;
+        return;
+    }
+    insertAfterRec(head->next, afterValue, newValue); 
+}
+
+// Рекурсивна вставка перед заданим елементом
+Node* insertBeforeRec(Node* head, int beforeValue, int newValue) {
+    if (head == nullptr) return nullptr; 
+
+    if (head->value == beforeValue) {
+        Node* newNode = new Node();
+        newNode->value = newValue;
+        newNode->next = head;
+        return newNode; 
+    }
+
+    head->next = insertBeforeRec(head->next, beforeValue, newValue);
+    return head; 
+}
+
+// Рекурсивний друк списку
+void printListRec(Node* head) {
+    if (head == nullptr) return; 
+    cout << head->value << " ";
+    printListRec(head->next);
+}
+
+int main() {
+    Node* myList = createListRec();
+    cout << "Список після створення: ";
+    printListRec(myList);
+    cout << endl;
+
+    insertAfterRec(myList, 2, 22);
+    cout << "Список після вставки після 2: ";
+    printListRec(myList);
+    cout << endl;
+
+    myList = insertBeforeRec(myList, 2, 222);
+    cout << "Список після вставки перед 2: ";
+    printListRec(myList);
+    cout << endl;
+
+    return 0;
+}
