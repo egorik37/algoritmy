@@ -1,1 +1,101 @@
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* next;
+};
+
+// Створення списку з клавіатури
+Node* createList() {
+    Node* head = nullptr;   
+    Node* tail = nullptr;   
+    int x;
+
+    cout << "Введіть числа (0 - кінець): ";
+    while (true) {
+        cin >> x;
+        if (x == 0) break;  
+
+        Node* newNode = new Node();
+        newNode->value = x;
+        newNode->next = nullptr;
+
+        if (head == nullptr) {   
+            head = newNode;
+            tail = newNode;
+        } else {                 
+            tail->next = newNode;
+            tail = newNode;
+        }
+    }
+    return head;
+}
+
+// Вставка після заданого елемента
+void insertAfter(Node* head, int afterValue, int newValue) {
+    Node* current = head;
+    while (current != nullptr) {
+        if (current->value == afterValue) {
+            Node* newNode = new Node();
+            newNode->value = newValue;
+            newNode->next = current->next;
+            current->next = newNode;
+            return;
+        }
+        current = current->next;
+    }
+    cout << "Елемент " << afterValue << " не знайдено!\n";
+}
+
+// Вставка перед заданим елементом
+void insertBefore(Node*& head, int beforeValue, int newValue) {
+    // Якщо вставляємо перед головою
+    if (head != nullptr && head->value == beforeValue) {
+        Node* newNode = new Node();
+        newNode->value = newValue;
+        newNode->next = head;
+        head = newNode;
+        return;
+    }
+
+    Node* current = head;
+    while (current != nullptr && current->next != nullptr) {
+        if (current->next->value == beforeValue) {
+            Node* newNode = new Node();
+            newNode->value = newValue;
+            newNode->next = current->next;
+            current->next = newNode;
+            return;
+        }
+        current = current->next;
+    }
+    cout << "Елемент " << beforeValue << " не знайдено!\n";
+}
+
+// Функція для друку списку
+void printList(Node* head) {
+    Node* current = head;
+    while (current != nullptr) {
+        cout << current->value << " ";
+        current = current->next;
+    }
+    cout << endl;
+}
+
+int main() {
+    Node* myList = createList();
+    cout << "Список після створення: ";
+    printList(myList);
+
+    insertAfter(myList, 2, 22);
+    cout << "Список після вставки після 2: ";
+    printList(myList);
+
+    insertBefore(myList, 2, 222);
+    cout << "Список після вставки перед 2: ";
+    printList(myList);
+
+    return 0;
+}
 
