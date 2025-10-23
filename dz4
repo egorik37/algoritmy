@@ -1,0 +1,101 @@
+#include <iostream>
+using namespace std;
+
+class Node {
+public:
+    int value;
+    Node* left = nullptr;
+    Node* right = nullptr;
+
+    Node(int value) {
+        this->value = value;
+    }
+};
+
+Node* createTree() {
+    int value;
+    cin >> value;
+    if (!value) {
+        return nullptr;
+    }
+
+    Node* root = new Node(value);
+    root->left = createTree();
+    root->right = createTree();
+    return root;
+}
+
+// Прямий обхід (preorder): current -> left -> right
+void preorderTraversal(Node* root) {
+    if (root == nullptr) return;
+    cout << root->value << " ";
+    preorderTraversal(root->left);
+    preorderTraversal(root->right);
+}
+
+//  Симетричний обхід (inorder): left -> current -> right
+void inorderTraversal(Node* root) {
+    if (root == nullptr) return;
+    inorderTraversal(root->left);
+    cout << root->value << " ";
+    inorderTraversal(root->right);
+}
+
+//  Зворотний обхід (postorder): left -> right -> current
+void postorderTraversal(Node* root) {
+    if (root == nullptr) return;
+    postorderTraversal(root->left);
+    postorderTraversal(root->right);
+    cout << root->value << " ";
+}
+
+//  Перевірка дзеркальної симетрії дерева
+bool isMirror(Node* a, Node* b) {
+    if (a == nullptr && b == nullptr) return true;
+    if (a == nullptr || b == nullptr) return false;
+    return (a->value == b->value)
+        && isMirror(a->left,  b->right)
+        && isMirror(a->right, b->left);
+}
+bool isSymmetricTree(Node* root) {
+    if (root == nullptr) return true;
+    return isMirror(root->left, root->right);
+}
+
+//  Висота дерева (кількість рівнів; порожнє = 0)
+int treeHeight(Node* root) {
+    if (root == nullptr) return 0;
+    int lh = treeHeight(root->left);
+    int rh = treeHeight(root->right);
+    return (lh > rh ? lh : rh) + 1;
+}
+
+//  Максимальне значення в дереві
+int findMaxValue(Node* root) {
+    if (root == nullptr) return 0;
+    int lm = findMaxValue(root->left);
+    int rm = findMaxValue(root->right);
+    int mx = (lm > rm ? lm : rm);
+    return (root->value > mx ? root->value : mx);
+}
+
+int main() {
+    cout << "Створіть бінарне дерево (0 = порожній вузол): ";
+    Node* root = createTree();
+
+    cout << "Дерево у прямому обході (preorder): ";
+    preorderTraversal(root);
+    cout << "\n";
+
+    cout << "Дерево у симетричному обході (inorder): ";
+    inorderTraversal(root);
+    cout << "\n";
+
+    cout << "Дерево у зворотному обході (postorder): ";
+    postorderTraversal(root);
+    cout << "\n";
+
+    cout << "Висота дерева: " << treeHeight(root) << "\n";
+    cout << "Максимальний елемент: " << findMaxValue(root) << "\n";
+    cout << "Чи є дерево симетричним? " << (isSymmetricTree(root) ? "Так" : "Ні") << "\n";
+}
