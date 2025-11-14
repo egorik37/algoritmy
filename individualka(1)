@@ -1,0 +1,50 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Node {
+    char value;
+    Node* next;
+    Node(char v, Node* n = nullptr) : value(v), next(n) {}
+};
+
+class Stack {
+    Node* head = nullptr; 
+public:
+    ~Stack() {
+        while (head) { Node* t = head; head = head->next; delete t; }
+    }
+    bool empty() const { return head == nullptr; }
+    void push(char c) { head = new Node(c, head); }
+    bool pop(char &out) {
+        if (empty()) return false;
+        out = head->value;
+        Node* t = head; head = head->next; delete t;
+        return true;
+    }
+};
+
+static inline bool isOpen(char c)  { return c=='(' || c=='[' || c=='{'; }
+static inline bool isClose(char c) { return c==')' || c==']' || c=='}'; }
+static inline bool match(char o, char c) {
+    return (o=='(' && c==')') || (o=='[' && c==']') || (o=='{' && c=='}');
+}
+
+bool isBalanced(const string& s) {
+    Stack st;
+    for (char c : s) {
+        if (isOpen(c)) st.push(c);
+        else if (isClose(c)) {
+            char topc;
+            if (!st.pop(topc) || !match(topc, c)) return false;
+        }
+    }
+    return st.empty();
+}
+
+int main() {
+    string expr;
+    cin >> expr;              
+    cout << (isBalanced(expr) ? "true" : "false") << "\n";
+    return 0;
+}
