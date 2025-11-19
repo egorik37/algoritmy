@@ -1,0 +1,247 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+// AVLTree
+struct AVLNode {
+    int key;
+    int h;
+    AVLNode *l, *r;
+    AVLNode(int k): key(k), h(1), l(nullptr), r(nullptr) {}
+};
+
+class AVLTree {
+    AVLNode* root = nullptr;
+    
+    static int imax(int a, int b) { return (a > b) ? a : b; }
+    static int height(AVLNode* n) { return n ? n->h : 0; }
+    static int bf(AVLNode* n) { return n ? height(n->l) - height(n->r) : 0; }
+    static void upd(AVLNode* n) { if (n) n->h = 1 + imax(height(n->l), height(n->r)); }
+
+    static AVLNode* rotRight(AVLNode* y) {
+        AVLNode* x = y->l; AVLNode* T2 = x->r;
+        x->r = y; y->l = T2;
+        upd(y); upd(x);
+        return x;
+    }
+    static AVLNode* rotLeft(AVLNode* x) {
+        AVLNode* y = x->r; AVLNode* T2 = y->l;
+        y->l = x; x->r = T2;
+        upd(x); upd(y);
+        return y;
+    }
+    static AVLNode* balance(AVLNode* n) {
+        if (!n) return n;
+        upd(n);
+        int b = bf(n);
+        if (b > 1) {
+            if (bf(n->l) < 0) n->l = rotLeft(n->l);  
+            return rotRight(n);                      
+        } else if (b < -1) {
+            if (bf(n->r) > 0) n->r = rotRight(n->r); 
+            return rotLeft(n);                       
+        }
+        return n;
+    }
+    static AVLNode* insertNode(AVLNode* n, int key) {
+        if (!n) return new AVLNode(key);
+        if (key < n->key) n->l = insertNode(n->l, key);
+        else if (key > n->key) n->r = insertNode(n->r, key);
+        else return n; // дубликаты игнорим
+        return balance(n);
+    }
+    static AVLNode* minNode(AVLNode* n) {
+        while (n && n->l) n = n->l;
+        return n;
+    }
+    static AVLNode* deleteNode(AVLNode* n, int key) {
+        if (!n) return nullptr;
+        if (key < n->key) n->l = deleteNode(n->l, key);
+        else if (key > n->key) n->r = deleteNode(n->r, key);
+        else {
+            if (!n->l || !n->r) {
+                AVLNode* tmp = n->l ? n->l : n->r;
+                delete n;
+                return balance(tmp);
+            } else {
+                AVLNode* t = minNode(n->r);
+                n->key = t->key;
+                n->r = deleteNode(n->r, t->key);
+            }
+        }
+        return balance(n);
+    }
+    static bool searchNode(AVLNode* n, int key) {
+        if (!n) return false;
+        if (key == n->key) return true;
+        return key < n->key ? searchNode(n->l, key) : searchNode(n->r, key);
+    }
+    static void inorder(AVLNode* n) {
+        if (!n) return;
+        inorder(n->l);
+        cout << n->key << " ";
+        inorder(n->r);
+    }
+
+public:
+    void insert(int key) { root = insertNode(root, key); }
+    void deleteKey(int key) { root = deleteNode(root, key); }
+    bool search(int key) { return searchNode(root, key); }
+    void printInOrder() { inorder(root); cout << "\n"; }
+};
+
+// ProductCatalog 
+struct Product {
+    string name;
+    double price;
+    Product() {}
+    Product(string n, double p): name(n), price(p) {}
+};
+
+struct PNode {
+    double price;
+    vector<Product> items; 
+    int h;
+    PNode *l, *r;
+    PNode(double p, const Product& prod): price(p), h(1), l(nullptr), r(nullptr) {
+        items.push_back(prod);
+    }
+};
+
+class ProductCatalog {
+    PNode* root = nullptr;
+
+    static int imax(int a, int b) { return (a > b) ? a : b; }
+    static bool dbl_equal(double a, double b) {
+        const double EPS = 1e-9;
+        double d = (a > b) ? (a - b) : (b - a);
+        return d <= EPS;
+    }
+    static bool dbl_less(double a, double b) {
+        // a < b с учётом EPS
+        return (!dbl_equal(a, b)) && (a < b);
+    }
+
+    static int ph(PNode* n){ return n? n->h:0; }
+    static void pupd(PNode* n){ if(n) n->h = 1 + imax(ph(n->l), ph(n->r)); }
+    static int pbf(PNode* n){ return n? ph(n->l)-ph(n->r):0; }
+    static PNode* protRight(PNode* y){ PNode* x=y->l; PNode* T2=x->r; x->r=y; y->l=T2; pupd(y); pupd(x); return x; }
+    static PNode* protLeft(PNode* x){ PNode* y=x->r; PNode* T2=y->l; y->l=x; x->r=T2; pupd(x); pupd(y); return y; }
+    static PNode* pbal(PNode* n){
+        if (!n) return n;
+        pupd(n);
+        int b=pbf(n);
+        if(b>1){ if(pbf(n->l)<0) n->l=protLeft(n->l); return protRight(n); }
+        if(b<-1){ if(pbf(n->r)>0) n->r=protRight(n->r); return protLeft(n); }
+        return n;
+    }
+    static PNode* pmin(PNode* n){ while(n && n->l) n=n->l; return n; }
+
+    static PNode* insertNode(PNode* n, const Product& prod){
+        if(!n) return new PNode(prod.price, prod);
+        if (dbl_less(prod.price, n->price)) n->l = insertNode(n->l, prod);
+        else if (dbl_less(n->price, prod.price)) n->r = insertNode(n->r, prod);
+        else { n->items.push_back(prod); return n; } 
+        return pbal(n);
+    }
+    static PNode* deleteByPriceNode(PNode* n, double price){
+        if(!n) return nullptr;
+        if (dbl_less(price, n->price)) n->l = deleteByPriceNode(n->l, price);
+        else if (dbl_less(n->price, price)) n->r = deleteByPriceNode(n->r, price);
+        else {
+            if(!n->l || !n->r){
+                PNode* tmp = n->l? n->l : n->r;
+                delete n;
+                return pbal(tmp);
+            } else {
+                PNode* t = pmin(n->r);
+                n->price = t->price;
+                n->items = t->items;
+                n->r = deleteByPriceNode(n->r, t->price);
+            }
+        }
+        return pbal(n);
+    }
+    static PNode* findNode(PNode* n, double price){
+        if(!n) return nullptr;
+        if (dbl_equal(price, n->price)) return n;
+        if (dbl_less(price, n->price)) return findNode(n->l, price);
+        else return findNode(n->r, price);
+    }
+    static void inorder(PNode* n){
+        if(!n) return;
+        inorder(n->l);
+        for (auto &p : n->items) {
+            cout << p.price << " - " << p.name << "\n";
+        }
+        inorder(n->r);
+    }
+    static void closestDFS(PNode* n, double tgt, PNode*& best) {
+        if(!n) return;
+        auto better = [&](PNode* a, PNode* b)->bool{
+            if (!b) return true;
+            double da = (a->price > tgt) ? (a->price - tgt) : (tgt - a->price);
+            double db = (b->price > tgt) ? (b->price - tgt) : (tgt - b->price);
+            if (da < db) return true;
+            if (da > db) return false;
+            return a->price < b->price; 
+        };
+        if (better(n, best)) best = n;
+        if (dbl_less(tgt, n->price)) closestDFS(n->l, tgt, best);
+        else if (dbl_less(n->price, tgt)) closestDFS(n->r, tgt, best);
+        else { best = n; return; } 
+    }
+
+public:
+    void addProduct(const string& name, double price){ root = insertNode(root, Product(name, price)); }
+    void removeByPrice(double price){ root = deleteByPriceNode(root, price); }
+    vector<Product> findProductByPrice(double price){
+        PNode* n = findNode(root, price);
+        if (!n) return {};
+        return n->items;
+    }
+    vector<Product> findClosestByPrice(double price){
+        PNode* best = nullptr;
+        closestDFS(root, price, best);
+        if (!best) return {};
+        return best->items;
+    }
+    void printAllInOrder(){ inorder(root); }
+};
+
+int main() {
+    // AVLTree
+    cout << "AVLTree demo:\n";
+    AVLTree t;
+    t.insert(10); t.insert(20); t.insert(5); t.insert(7); t.insert(15);
+    cout << "InOrder: "; t.printInOrder();
+    cout << "search(7) = " << (t.search(7) ? 1 : 0) << "\n";
+    t.deleteKey(10);
+    cout << "After delete 10, InOrder: "; t.printInOrder();
+
+    // ProductCatalog
+    cout << "\nProductCatalog demo:\n";
+    ProductCatalog pc;
+    pc.addProduct("Tea",    49.90);
+    pc.addProduct("Coffee", 79.00);
+    pc.addProduct("Sugar",  39.50);
+    pc.addProduct("Milk",   49.90); 
+
+    cout << "Catalog (ascending by price):\n";
+    pc.printAllInOrder();
+
+    cout << "\nExact price 49.90:\n";
+    for (auto &p : pc.findProductByPrice(49.90))
+        cout << p.price << " - " << p.name << "\n";
+
+    cout << "\nClosest to 50.00:\n";
+    for (auto &p : pc.findClosestByPrice(50.00))
+        cout << p.price << " - " << p.name << "\n";
+
+    cout << "\nRemove price 49.90 and print again:\n";
+    pc.removeByPrice(49.90);
+    pc.printAllInOrder();
+
+    return 0;
+}
